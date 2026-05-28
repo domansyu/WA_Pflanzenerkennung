@@ -6,32 +6,22 @@ from PIL import Image
 # UI
 # --------------------------------
 st.set_page_config(
-    page_title="Wiesenpflanzen KI (Stufe 3)",
+    page_title="Pflanzen KI",
     page_icon="🌿",
     layout="centered"
 )
 
-st.title("🌿 Echte Pflanzenarten-KI (iNaturalist Level)")
-st.write("Feinere biologische Klassifikation statt ImageNet")
+st.title("🌿 Pflanzen KI (stabile Version)")
+st.write("Lokale Bildklassifikation ohne API")
 
 # --------------------------------
-# Giftigkeits-Datenbank (Start)
-# --------------------------------
-TOXICITY_DB = {
-    "Urtica": "⚠️ Brennnessel (reizend, essbar nach Verarbeitung)",
-    "Taraxacum": "✅ Löwenzahn (essbar)",
-    "Digitalis": "☠️ Giftig (Fingerhut)",
-    "Heracleum": "☠️ Giftig (Bärenklau)"
-}
-
-# --------------------------------
-# MODELL (WICHTIG: echtes anderes Modell!)
+# Modell (STABIL)
 # --------------------------------
 @st.cache_resource
 def load_model():
     return pipeline(
         "image-classification",
-        model="microsoft/beit-base-patch16-224-pt22k-ft22k"
+        model="facebook/deit-base-patch16-224"
     )
 
 classifier = load_model()
@@ -46,23 +36,16 @@ if uploaded_file:
     image = Image.open(uploaded_file).convert("RGB")
     st.image(image, use_container_width=True)
 
-    with st.spinner("Analysiere Pflanzenart..."):
-        results = classifier(image)
+    results = classifier(image)
 
     st.subheader("🔍 Ergebnisse")
 
-    for result in results[:5]:
-
-        label = result["label"]
-        score = round(result["score"] * 100, 2)
-
-        st.write(f"**{label}** — {score}%")
-
-        for key, value in TOXICITY_DB.items():
-            if key.lower() in label.lower():
-                st.warning(value)
+    for r in results[:5]:
+        st.write(f"**{r['label']}** — {round(r['score']*100, 2)}%")
 
 # --------------------------------
 # Hinweis
+# --------------------------------
+st.info("Stabile Version: funktioniert sicher, aber nur grobe Klassifikation.")
 # --------------------------------
 st.info("iNaturalist/biologische Vortrainierung – deutlich feiner als ImageNet.")
